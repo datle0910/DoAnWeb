@@ -24,7 +24,7 @@ const Product = () => {
 
   return (
     <div className='mt-14 mb-12'>
-      <div className='container'>
+      <div className='container mx-auto px-4'>
         {/* Header section */}
         <div className='text-center mb-10 max-w-[600px] mx-auto'>
           <p data-aos='fade-up' className='text-sm text-[#deb658]'>Top Sản Phẩm Được Mua Nhiều Nhất</p>
@@ -35,8 +35,8 @@ const Product = () => {
         </div>
 
         {/* Body section */}
-        <div>
-          <div className='grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 place-items-center gap-5'>
+        <div className="w-full flex justify-center">
+          <div className='grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 place-items-center gap-5 w-full'>
             {topSellingProducts.map((data) => (
               <div
                 data-aos="fade-up"
