@@ -3,16 +3,6 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import tailwindcss from '@tailwindcss/vite'
 
-// Check if terser is available
-let minify = 'terser';
-try {
-  require.resolve('terser');
-} catch (e) {
-  // Fallback to esbuild minifier if terser is not available
-  console.warn('Terser not found, falling back to esbuild minifier');
-  minify = 'esbuild';
-}
-
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -23,7 +13,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    minify: minify,
+    minify: 'terser',
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
