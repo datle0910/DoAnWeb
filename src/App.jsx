@@ -86,8 +86,8 @@ function LoginPage() {
       };
       localStorage.setItem('currentUser', JSON.stringify(adminUser));
       
-      // Use React Router navigation instead of direct page reload
-      navigate('/admin');
+      // Force a page reload to ensure all contexts are properly refreshed
+      window.location.href = '/admin';
     } else {
       // For customer login
       const customerUser = {
@@ -98,8 +98,8 @@ function LoginPage() {
       };
       localStorage.setItem('currentUser', JSON.stringify(customerUser));
       
-      // Use React Router navigation
-      navigate('/');
+      // Force a page reload for customer login as well
+      window.location.href = '/';
     }
   };
 
@@ -166,41 +166,6 @@ function App() {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
-
-  // Handle redirects from 404.html
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect');
-    
-    if (redirect === 'admin') {
-      // Check if user has admin role
-      const role = localStorage.getItem('role');
-      if (role === 'admin') {
-        // Clean up the URL and redirect to admin
-        window.history.replaceState({}, document.title, '/admin');
-      } else {
-        // If not admin, redirect to unauthorized
-        window.history.replaceState({}, document.title, '/unauthorized');
-      }
-    }
-
-    // Handle stored redirect path from sessionStorage
-    const storedPath = sessionStorage.getItem('spa_redirect_path');
-    if (storedPath) {
-      sessionStorage.removeItem('spa_redirect_path');
-      // For admin paths, check auth first
-      if (storedPath.startsWith('/admin')) {
-        const role = localStorage.getItem('role');
-        if (role === 'admin') {
-          window.history.replaceState({}, document.title, storedPath);
-        } else {
-          window.history.replaceState({}, document.title, '/unauthorized');
-        }
-      } else {
-        window.history.replaceState({}, document.title, storedPath);
-      }
-    }
   }, []);
 
   return (
