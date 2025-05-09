@@ -8,21 +8,45 @@ export const ProductsProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to ensure images are properly handled
+  const ensureImageIntegrity = (productData) => {
+    return productData.map(product => {
+      // If the image is already a base64 string (from admin upload), keep it as is
+      if (typeof product.img === 'string' && product.img.startsWith('data:image')) {
+        return product;
+      }
+      
+      // If the image is a string that isn't a data URL (from imports), it may not work on Vercel
+      // In that case, ensure we have a proper URL or fallback
+      if (typeof product.img === 'object' || typeof product.img === 'undefined') {
+        // Provide a fallback image for safety
+        return {
+          ...product,
+          img: 'https://placehold.jp/300x200.png?text=Product+Image'
+        };
+      }
+      
+      return product;
+    });
+  };
+
   // Load products from localStorage or use default data on initial render
   useEffect(() => {
     const storedProducts = localStorage.getItem('adminProducts');
     if (storedProducts) {
       try {
-        setProducts(JSON.parse(storedProducts));
+        const parsedProducts = JSON.parse(storedProducts);
+        setProducts(ensureImageIntegrity(parsedProducts));
       } catch (error) {
         console.error('Error parsing products data from localStorage:', error);
-        setProducts(defaultProductsData);
+        setProducts(ensureImageIntegrity(defaultProductsData));
       }
     } else {
       // If no products in localStorage, use the default data
-      setProducts(defaultProductsData);
+      const processedProducts = ensureImageIntegrity(defaultProductsData);
+      setProducts(processedProducts);
       // Initialize localStorage with default data
-      localStorage.setItem('adminProducts', JSON.stringify(defaultProductsData));
+      localStorage.setItem('adminProducts', JSON.stringify(processedProducts));
     }
     setLoading(false);
   }, []);

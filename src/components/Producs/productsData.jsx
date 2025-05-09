@@ -23,10 +23,25 @@ import imgbanhchayhatsen from './imgProducts/banhchayhatsen.jpg';
 import imgbanhchaydua from './imgProducts/banhchaydua.jpg';
 import imgbanhchayngucoc from './imgProducts/banhchayngucoc.jpg';
 import imgbanhmiphomai from './imgProducts/banhmiphomai.jpg';
+
+// Define a fallback image URL for production deployment
+const FALLBACK_IMG = 'https://placehold.jp/300x200.png?text=Bakery+Product';
+
+// Function to handle image properly for both development and production
+const getImageUrl = (importedImage) => {
+  // For development environment, use the imported image
+  if (importedImage && typeof importedImage === 'string') {
+    return importedImage;
+  }
+  
+  // For production (Vercel), use the fallback
+  return FALLBACK_IMG;
+};
+
 const productsData = [
   {
     id: 1,
-    img: imgbanhmi,
+    img: getImageUrl(imgbanhmi),
     title: "Bánh Mì",
     description: "Bánh mì thơm bơ sữa",
     type: "Bánh Mì",
@@ -37,7 +52,7 @@ const productsData = [
   },
   {
     id: 2,
-    img: imgbanhkemdau,
+    img: getImageUrl(imgbanhkemdau),
     title: "Bánh Kem Dâu",
     description: "Bánh kem mềm mịn, phủ dâu tươi và kem béo ngậy",
     type: "Bánh Kem",
@@ -48,7 +63,7 @@ const productsData = [
   },
   {
     id: 3,
-    img: imgbanhsu,
+    img: getImageUrl(imgbanhsu),
     title: "Bánh Su Kem",
     description: "Lớp vỏ giòn, nhân kem sữa béo mịn tan trong miệng",
     type: "Bánh Ngọt",
@@ -59,7 +74,7 @@ const productsData = [
   },
   {
     id: 4,
-    img: imgbanhcookie,
+    img: getImageUrl(imgbanhcookie),
     title: "Bánh Quy Chocolate",
     description: "Bánh quy giòn rụm, vị socola đậm đà",
     type: "Bánh Quy",
@@ -70,7 +85,7 @@ const productsData = [
   },
   {
     id: 5,
-    img: imgbanhbaonhanhdauxanh,
+    img: getImageUrl(imgbanhbaonhanhdauxanh),
     title: "Bánh Chay Đậu Xanh",
     description: "Ngọt thanh, mềm mịn, phù hợp người ăn chay",
     type: "Bánh Chay",
@@ -82,7 +97,7 @@ const productsData = [
   // Bánh Mì
   {
     id: 6,
-    img: imgbanhmiphomai,
+    img: getImageUrl(imgbanhmiphomai),
     title: "Bánh Mì Phô Mai",
     description: "Bánh mì mềm, nhân phô mai chảy béo ngậy",
     type: "Bánh Mì",
@@ -93,7 +108,7 @@ const productsData = [
   },
   {
     id: 7,
-    img: imgbanhmithitnguoi,
+    img: getImageUrl(imgbanhmithitnguoi),
     title: "Bánh Mì Thịt Nguội",
     description: "Bánh mì kẹp thịt nguội, rau sống tươi ngon",
     type: "Bánh Mì",
@@ -104,7 +119,7 @@ const productsData = [
   },
   {
     id: 8,
-    img: imgbanhmigaxe,
+    img: getImageUrl(imgbanhmigaxe),
     title: "Bánh Mì Gà Xé",
     description: "Nhân gà xé đậm đà, cay nhẹ",
     type: "Bánh Mì",
@@ -115,7 +130,7 @@ const productsData = [
   },
   {
     id: 9,
-    img: imgbanhmipate,
+    img: getImageUrl(imgbanhmipate),
     title: "Bánh Mì Pate",
     description: "Bánh mì pate thơm béo, ăn kèm dưa leo và đồ chua",
     type: "Bánh Mì",
@@ -127,7 +142,7 @@ const productsData = [
   // Bánh Kem
   {
     id: 10,
-    img: imgbanhkemchocolate,
+    img: getImageUrl(imgbanhkemchocolate),
     title: "Bánh Kem Chocolate",
     description: "Lớp kem chocolate mềm, phủ socola tươi",
     type: "Bánh Kem",
@@ -138,7 +153,7 @@ const productsData = [
   },
   {
     id: 11,
-    img: imgbanhkemmatcha,
+    img: getImageUrl(imgbanhkemmatcha),
     title: "Bánh Kem Matcha",
     description: "Hương vị trà xanh Nhật Bản dịu nhẹ",
     type: "Bánh Kem",
@@ -149,7 +164,7 @@ const productsData = [
   },
   {
     id: 12,
-    img: imgbanhkemsinhnhat,
+    img: getImageUrl(imgbanhkemsinhnhat),
     title: "Bánh Kem Sinh Nhật",
     description: "Trang trí đẹp mắt, phù hợp mọi buổi tiệc",
     type: "Bánh Kem",
@@ -160,7 +175,7 @@ const productsData = [
   },
   {
     id: 13,
-    img: ingbanhkemtiramisu,
+    img: getImageUrl(ingbanhkemtiramisu),
     title: "Bánh Kem Tiramisu",
     description: "Hương vị Ý cổ điển, thơm cà phê nhẹ",
     type: "Bánh Kem",
@@ -172,7 +187,7 @@ const productsData = [
   // Bánh Ngọt
   {
     id: 14,
-    img: imgbanhkemtrungmuoi,
+    img: getImageUrl(imgbanhkemtrungmuoi),
     title: "Bánh Ngọt Trứng Muối",
     description: "Mặn ngọt hài hòa, lớp trứng muối tan chảy",
     type: "Bánh Ngọt",
@@ -183,7 +198,7 @@ const productsData = [
   },
   {
     id: 15,
-    img: imgbanhcupkey,
+    img: getImageUrl(imgbanhcupkey),
     title: "Bánh Cupcake",
     description: "Trang trí bắt mắt, vị vani nhẹ nhàng",
     type: "Bánh Ngọt",
@@ -194,7 +209,7 @@ const productsData = [
   },
   {
     id: 16,
-    img: ingbanhdonut,
+    img: getImageUrl(ingbanhdonut),
     title: "Bánh Donut",
     description: "Bánh vòng rán ngọt, phủ đường hoặc socola",
     type: "Bánh Ngọt",
@@ -205,7 +220,7 @@ const productsData = [
   },
   {
     id: 17,
-    img: imgbanhngotsocola,
+    img: getImageUrl(imgbanhngotsocola),
     title: "Bánh Ngọt Socola",
     description: "Đậm vị cacao, mềm mịn và ít ngọt",
     type: "Bánh Ngọt",
@@ -217,7 +232,7 @@ const productsData = [
   // Bánh Quy
   {
     id: 18,
-    img: imgbanhquyhatdieu,
+    img: getImageUrl(imgbanhquyhatdieu),
     title: "Bánh Quy Hạt Điều",
     description: "Giòn rụm, thơm vị hạt điều rang",
     type: "Bánh Quy",
@@ -228,7 +243,7 @@ const productsData = [
   },
   {
     id: 19,
-    img: imgbanhquybo,
+    img: getImageUrl(imgbanhquybo),
     title: "Bánh Quy Bơ",
     description: "Dễ ăn, hợp với trà chiều",
     type: "Bánh Quy",
@@ -239,7 +254,7 @@ const productsData = [
   },
   {
     id: 20,
-    img: imgbanhquymeden,
+    img: getImageUrl(imgbanhquymeden),
     title: "Bánh Quy Mè Đen",
     description: "Giòn thơm, vị mè đậm đà",
     type: "Bánh Quy",
@@ -250,7 +265,7 @@ const productsData = [
   },
   {
     id: 21,
-    img: imgbanhquymut,
+    img: getImageUrl(imgbanhquymut),
     title: "Bánh Quy Mứt",
     description: "Nhân mứt trái cây ngọt nhẹ",
     type: "Bánh Quy",
@@ -262,7 +277,7 @@ const productsData = [
   // Bánh Chay
   {
     id: 22,
-    img: imgbanhchaykhoaimon,
+    img: getImageUrl(imgbanhchaykhoaimon),
     title: "Bánh Chay Khoai Môn",
     description: "Nhân khoai môn mịn và ngọt tự nhiên",
     type: "Bánh Chay",
@@ -273,7 +288,7 @@ const productsData = [
   },
   {
     id: 23,
-    img: imgbanhchayhatsen,
+    img: getImageUrl(imgbanhchayhatsen),
     title: "Bánh Chay Hạt Sen",
     description: "Nhân hạt sen thanh đạm, dễ tiêu hóa",
     type: "Bánh Chay",
@@ -284,7 +299,7 @@ const productsData = [
   },
   {
     id: 24,
-    img: imgbanhchaydua,
+    img: getImageUrl(imgbanhchaydua),
     title: "Bánh Bao Chay Dừa",
     description: "Nhân dừa thơm, vỏ bánh dai nhẹ",
     type: "Bánh Chay",
@@ -295,7 +310,7 @@ const productsData = [
   },
   {
     id: 25,
-    img: imgbanhchayngucoc,
+    img: getImageUrl(imgbanhchayngucoc),
     title: "Bánh Chay Ngũ Cốc",
     description: "Tốt cho sức khỏe, vị ngọt nhẹ từ ngũ cốc",
     type: "Bánh Chay",

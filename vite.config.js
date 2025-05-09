@@ -14,6 +14,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     minify: 'terser',
+    assetsInlineLimit: 0, // Disable inlining images as base64
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
@@ -26,4 +27,10 @@ export default defineConfig({
       },
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+  },
+  // Ensure static assets like images are properly handled
+  publicDir: 'public',
+  assetsInclude: ['**/*.jpg', '**/*.png', '**/*.svg', '**/*.gif'],
 })
