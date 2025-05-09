@@ -5,6 +5,7 @@ import Navbar from './components/Navbar/Navbar';
 import Slideshow from './components/slideshow/Slideshow';
 import Product from './components/Producs/Product';
 import TopProducts from './components/TopProducts/TopProducts';
+import DiscountProducts from './components/Producs/DiscountProducts';
 import Footer from './components/Footer/Footer';
 import AllProductPage from './components/Producs/ProductPage';
 import ProductDetail from './components/Producs/ProductDetail';
@@ -27,6 +28,7 @@ function CustomerHome() {
     <MainLayout>
       <Slideshow />
       <Product />
+      <DiscountProducts />
       <TopProducts />
     </MainLayout>
   );
