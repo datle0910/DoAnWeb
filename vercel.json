@@ -21,5 +21,14 @@
         { "key": "Content-Type", "value": "text/css" }
       ]
     }
+  ],
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node",
+      "config": {
+        "installCommand": "npm install terser --save-dev && npm install"
+      }
+    }
   ]
 } 
