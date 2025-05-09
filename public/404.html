@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SWEETGLOW - Redirecting</title>
+  <script>
+    // Redirect all requests to the main index.html
+    // This helps with client-side routing in SPAs
+    const path = window.location.pathname;
+    const redirectURL = window.location.origin + (path.startsWith('/admin') ? '/?redirect=admin' : '/');
+    window.location.replace(redirectURL);
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html> 
