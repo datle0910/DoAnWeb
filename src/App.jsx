@@ -184,6 +184,23 @@ function App() {
         window.history.replaceState({}, document.title, '/unauthorized');
       }
     }
+
+    // Handle stored redirect path from sessionStorage
+    const storedPath = sessionStorage.getItem('spa_redirect_path');
+    if (storedPath) {
+      sessionStorage.removeItem('spa_redirect_path');
+      // For admin paths, check auth first
+      if (storedPath.startsWith('/admin')) {
+        const role = localStorage.getItem('role');
+        if (role === 'admin') {
+          window.history.replaceState({}, document.title, storedPath);
+        } else {
+          window.history.replaceState({}, document.title, '/unauthorized');
+        }
+      } else {
+        window.history.replaceState({}, document.title, storedPath);
+      }
+    }
   }, []);
 
   return (
