@@ -22,19 +22,25 @@ const Navbar = () => {
   // Check login status on component mount and when localStorage changes
   useEffect(() => {
     const checkLoginStatus = () => {
-      const role = localStorage.getItem('role');
-      const userJson = localStorage.getItem('currentUser');
-      
-      setIsLoggedIn(!!role);
-      
-      if (userJson) {
-        try {
-          setCurrentUser(JSON.parse(userJson));
-        } catch (error) {
-          console.error('Error parsing user data:', error);
+      try {
+        const role = localStorage.getItem('role');
+        const userJson = localStorage.getItem('currentUser');
+        
+        setIsLoggedIn(!!role);
+        
+        if (userJson) {
+          try {
+            setCurrentUser(JSON.parse(userJson));
+          } catch (error) {
+            console.error('Error parsing user data:', error);
+            setCurrentUser(null);
+          }
+        } else {
           setCurrentUser(null);
         }
-      } else {
+      } catch (error) {
+        console.error('Failed to access localStorage in checkLoginStatus:', error);
+        setIsLoggedIn(false);
         setCurrentUser(null);
       }
     };
@@ -62,22 +68,28 @@ const Navbar = () => {
   }, [location.pathname]);
 
   const menu = [
-    { id: 1, name: "Home", link: "/" },
-    { id: 2, name: "Product", link: "/product" },
-    { id: 3, name: "Contact", link: "/contact" },
-    { id: 4, name: "About Us", link: "/about-us" },
+    { id: 1, name: "Trang Chủ", link: "/" },
+    { id: 2, name: "Sản Phẩm", link: "/product" },
+    { id: 3, name: "Giao Hàng", link: "/shipping" },
+    { id: 4, name: "Liên Hệ", link: "/contact" },
+    { id: 5, name: "Giới Thiệu", link: "/about-us" },
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('role');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('searchTerm');
-    setIsLoggedIn(false);
-    setCurrentUser(null);
-    
-    // Force a page reload to ensure all contexts are refreshed
-    alert("Đăng xuất thành công!");
-    window.location.href = '/';
+    try {
+      localStorage.removeItem('role');
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('searchTerm');
+      setIsLoggedIn(false);
+      setCurrentUser(null);
+      
+      // Force a page reload to ensure all contexts are refreshed
+      alert("Đăng xuất thành công!");
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Failed to access localStorage during logout:', error);
+      alert("Đăng xuất không thành công. Vui lòng thử lại.");
+    }
   };
 
   const handleCartClick = () => {
@@ -94,9 +106,13 @@ const Navbar = () => {
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
-    const userJson = localStorage.getItem('currentUser');
-    if (userJson) {
-      setCurrentUser(JSON.parse(userJson));
+    try {
+      const userJson = localStorage.getItem('currentUser');
+      if (userJson) {
+        setCurrentUser(JSON.parse(userJson));
+      }
+    } catch (error) {
+      console.error('Failed to access localStorage in handleLoginSuccess:', error);
     }
   };
 
@@ -123,19 +139,19 @@ const Navbar = () => {
         <div className='container mx-auto px-4'>
           <div className="flex justify-between items-center">
             {/* Logo - Trái */}
-            <div className="w-1/4">
+            <div className="w-1/5">
               <Link to="/" className='font-bold text-2xl sm:text-3xl flex gap-2 items-center'>
                 <img src={logo} alt="logo" className='w-12 h-12' />
                 <h3 className='text-xl text-[#0e0d0d]'>SweetGlow</h3>
               </Link>
             </div>
 
-            {/* Menu - Giữa */}
-            <div className="w-2/4 flex justify-center">
-              <ul className='sm:flex hidden items-center gap-6'>
+            {/* Menu - Giữa (slightly moved to the left) */}
+            <div className="w-3/5 flex justify-start pl-8">
+              <ul className='sm:flex hidden items-center gap-4'>
                 {menu.map((item) => (
                   <li key={item.id}>
-                    <Link to={item.link} className='inline-block px-4 text-[#060505] hover:text-[#f8f4e3] duration-200 font-medium'>
+                    <Link to={item.link} className='inline-block px-3 text-[#060505] hover:text-[#f8f4e3] duration-200 font-medium'>
                       {item.name}
                     </Link>
                   </li>
@@ -144,7 +160,7 @@ const Navbar = () => {
             </div>
 
             {/* Phần công cụ - Phải */}
-            <div className="w-1/4 flex justify-end items-center gap-4">
+            <div className="w-1/5 flex justify-end items-center gap-3">
               {/* Thanh tìm kiếm */}
               <div className="relative group">
                 <input
@@ -153,7 +169,7 @@ const Navbar = () => {
                   value={searchInput}
                   onChange={handleSearch}
                   onKeyDown={handleSearchSubmit}
-                  className="w-[150px] sm:w-[180px] group-hover:w-[200px] transition-all duration-300 rounded-full border border-[#e8d9b5] px-3 py-1 focus:outline-none focus:border-1 focus:border-[#a68c69] bg-[#faf6eb]"
+                  className="w-[120px] sm:w-[140px] group-hover:w-[160px] transition-all duration-300 rounded-full border border-[#e8d9b5] px-3 py-1 focus:outline-none focus:border-1 focus:border-[#a68c69] bg-[#faf6eb]"
                 />
                 <IoMdSearch 
                   onClick={handleSearchIconClick}
@@ -164,10 +180,10 @@ const Navbar = () => {
               {/* Nút giỏ hàng */}
               <button
                 onClick={handleCartClick}
-                className='bg-gradient-to-r from-[#deb658] to-[#966b07] transition-all duration-200 text-[#5d4a2f] py-1 px-4 rounded-full flex items-center gap-3 group hover:from-[#d1bc8a] hover:to-[#c1ab78] relative'
+                className='bg-gradient-to-r from-[#deb658] to-[#966b07] transition-all duration-200 text-[#5d4a2f] py-1 px-3 rounded-full flex items-center gap-2 group hover:from-[#d1bc8a] hover:to-[#c1ab78] relative'
               >
-                <span className='group-hover:block hidden transition-all duration-200'>Order</span>
-                <FaCartShopping className='text-xl text-[#121111] drop-shadow-sm cursor-pointer' />
+                <span className='group-hover:block hidden transition-all duration-200 text-xs'>Order</span>
+                <FaCartShopping className='text-lg text-[#121111] drop-shadow-sm cursor-pointer' />
                 {getCartCount() > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {getCartCount()}
@@ -177,7 +193,7 @@ const Navbar = () => {
 
               {/* Đăng nhập / Đăng ký hoặc Đăng xuất */}
               <div className='dk-dn'>
-                <ul className='sm:flex hidden items-center gap-3'>
+                <ul className='sm:flex hidden items-center gap-1'>
                   {!isLoggedIn ? (
                     <>
                       <li>
@@ -185,7 +201,7 @@ const Navbar = () => {
                           href="#"
                           id="register-btn"
                           onClick={handleRegisterClick}
-                          className="text-sm text-[#000000] hover:text-[#121111] duration-200"
+                          className="text-xs text-[#000000] hover:text-[#121111] duration-200"
                         >
                           Đăng Ký
                         </a>
@@ -195,7 +211,7 @@ const Navbar = () => {
                         <a
                           href="#"
                           onClick={handleLoginClick}
-                          className="text-sm text-[#101010] hover:text-[#8a7355] duration-200"
+                          className="text-xs text-[#101010] hover:text-[#8a7355] duration-200"
                         >
                           Đăng Nhập
                         </a>
@@ -204,15 +220,15 @@ const Navbar = () => {
                   ) : (
                     <>
                       <li className="flex items-center">
-                        <FaUser className="mr-2 text-[#121111]" />
-                        <span className="text-sm font-medium">{currentUser?.fullName || 'User'}</span>
+                        <FaUser className="mr-1 text-[#121111] text-xs" />
+                        <span className="text-xs font-medium">{currentUser?.fullName || 'User'}</span>
                       </li>
                       <li className="mx-1 text-[#0f0e0e]">|</li>
                       <li>
                         <a
                           href="#"
                           onClick={handleLogout}
-                          className="text-sm text-[#000000] hover:text-[#8a7355] duration-200"
+                          className="text-xs text-[#000000] hover:text-[#8a7355] duration-200"
                         >
                           Đăng Xuất
                         </a>

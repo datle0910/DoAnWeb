@@ -18,6 +18,11 @@ import { ProductsProvider } from './context/ProductsContext';
 import AdminDashboard from './components/AdminPanel/AdminDashboard';
 import Contact from './components/Contact/Contact';
 import AboutUs from './components/AboutUs/AboutUs';
+import Testimonials from './components/Testimonials/Testimonials';
+import PromoSection from './components/PromoSection/PromoSection';
+import CategoryShowcase from './components/Categories/CategoryShowcase';
+import Newsletter from './components/Newsletter/Newsletter';
+import ShippingPage from './components/Shipping/ShippingPage';
 
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -27,9 +32,13 @@ function CustomerHome() {
   return (
     <MainLayout>
       <Slideshow />
+      <CategoryShowcase />
       <Product />
+      <PromoSection />
       <DiscountProducts />
+      <Testimonials />
       <TopProducts />
+      <Newsletter />
     </MainLayout>
   );
 }
@@ -145,7 +154,14 @@ function Unauthorized() {
 }
 
 function App() {
-  const [authRole, setAuthRole] = useState(localStorage.getItem('role'));
+  const [authRole, setAuthRole] = useState(() => {
+    try {
+      return localStorage.getItem('role');
+    } catch (error) {
+      console.error('Failed to access localStorage:', error);
+      return null;
+    }
+  });
   
   // Effect to initialize AOS
   useEffect(() => {
@@ -156,14 +172,22 @@ function App() {
   // Effect to update authRole whenever localStorage changes
   useEffect(() => {
     const handleStorageChange = () => {
-      setAuthRole(localStorage.getItem('role'));
+      try {
+        setAuthRole(localStorage.getItem('role'));
+      } catch (error) {
+        console.error('Failed to access localStorage in storage event:', error);
+      }
     };
     
     // Listen for storage events
     window.addEventListener('storage', handleStorageChange);
     
     // Also check on first render
-    setAuthRole(localStorage.getItem('role'));
+    try {
+      setAuthRole(localStorage.getItem('role'));
+    } catch (error) {
+      console.error('Failed to access localStorage on first render:', error);
+    }
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -176,13 +200,19 @@ function App() {
     const redirect = params.get('redirect');
     
     if (redirect === 'admin') {
-      // Check if user has admin role
-      const role = localStorage.getItem('role');
-      if (role === 'admin') {
-        // Clean up the URL and redirect to admin
-        window.history.replaceState({}, document.title, '/admin');
-      } else {
-        // If not admin, redirect to unauthorized
+      try {
+        // Check if user has admin role
+        const role = localStorage.getItem('role');
+        if (role === 'admin') {
+          // Clean up the URL and redirect to admin
+          window.history.replaceState({}, document.title, '/admin');
+        } else {
+          // If not admin, redirect to unauthorized
+          window.history.replaceState({}, document.title, '/unauthorized');
+        }
+      } catch (error) {
+        console.error('Failed to access localStorage in redirect handler:', error);
+        // Default to unauthorized if can't access localStorage
         window.history.replaceState({}, document.title, '/unauthorized');
       }
     }
@@ -204,6 +234,7 @@ function App() {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/about-us" element={<AboutUsPage />} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/shipping" element={<ShippingPage />} />
 
                 {/* Trang quản trị - yêu cầu role === admin */}
                 <Route path="/admin" element={authRole === 'admin' ? <AdminHome /> : <Navigate to="/unauthorized" />} />
