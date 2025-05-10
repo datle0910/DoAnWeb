@@ -19,7 +19,7 @@ const Navbar = () => {
   const { getCartCount } = useCart();
   const { searchTerm, performSearch } = useSearch();
 
-  // Check login status on component mount and when localStorage changes
+  // Check login status on component mount and update when needed
   useEffect(() => {
     const checkLoginStatus = () => {
       try {
@@ -29,29 +29,33 @@ const Navbar = () => {
         setIsLoggedIn(!!role);
         
         if (userJson) {
-          try {
-            setCurrentUser(JSON.parse(userJson));
-          } catch (error) {
-            console.error('Error parsing user data:', error);
-            setCurrentUser(null);
-          }
+          setCurrentUser(JSON.parse(userJson));
         } else {
           setCurrentUser(null);
         }
       } catch (error) {
-        console.error('Failed to access localStorage in checkLoginStatus:', error);
-        setIsLoggedIn(false);
-        setCurrentUser(null);
+        console.error('Error accessing localStorage:', error);
       }
     };
 
+    // Initial check
     checkLoginStatus();
     
-    // Listen for storage events to update login status
-    window.addEventListener('storage', checkLoginStatus);
+    // Create a custom event for authentication changes
+    const authChangeEvent = new Event('authChange');
+    
+    // Define a custom method to update authentication
+    window.updateAuthStatus = () => {
+      checkLoginStatus();
+      window.dispatchEvent(authChangeEvent);
+    };
+    
+    // Listen for the custom event
+    window.addEventListener('authChange', checkLoginStatus);
     
     return () => {
-      window.removeEventListener('storage', checkLoginStatus);
+      window.removeEventListener('authChange', checkLoginStatus);
+      delete window.updateAuthStatus;
     };
   }, []);
 
@@ -80,14 +84,19 @@ const Navbar = () => {
       localStorage.removeItem('role');
       localStorage.removeItem('currentUser');
       localStorage.removeItem('searchTerm');
+      
       setIsLoggedIn(false);
       setCurrentUser(null);
       
-      // Force a page reload to ensure all contexts are refreshed
+      // Notify about authentication change
+      if (window.updateAuthStatus) {
+        window.updateAuthStatus();
+      }
+      
       alert("Đăng xuất thành công!");
       window.location.href = '/';
     } catch (error) {
-      console.error('Failed to access localStorage during logout:', error);
+      console.error('Error during logout:', error);
       alert("Đăng xuất không thành công. Vui lòng thử lại.");
     }
   };
@@ -111,8 +120,13 @@ const Navbar = () => {
       if (userJson) {
         setCurrentUser(JSON.parse(userJson));
       }
+      
+      // Notify about authentication change
+      if (window.updateAuthStatus) {
+        window.updateAuthStatus();
+      }
     } catch (error) {
-      console.error('Failed to access localStorage in handleLoginSuccess:', error);
+      console.error('Error accessing localStorage during login:', error);
     }
   };
 

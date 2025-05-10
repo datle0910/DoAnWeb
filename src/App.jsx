@@ -154,14 +154,7 @@ function Unauthorized() {
 }
 
 function App() {
-  const [authRole, setAuthRole] = useState(() => {
-    try {
-      return localStorage.getItem('role');
-    } catch (error) {
-      console.error('Failed to access localStorage:', error);
-      return null;
-    }
-  });
+  const [authRole, setAuthRole] = useState(localStorage.getItem('role'));
   
   // Effect to initialize AOS
   useEffect(() => {
@@ -169,28 +162,20 @@ function App() {
     AOS.refresh();
   }, []);
   
-  // Effect to update authRole whenever localStorage changes
+  // Effect to update authRole whenever needed
   useEffect(() => {
-    const handleStorageChange = () => {
-      try {
-        setAuthRole(localStorage.getItem('role'));
-      } catch (error) {
-        console.error('Failed to access localStorage in storage event:', error);
-      }
+    const handleAuthChange = () => {
+      setAuthRole(localStorage.getItem('role'));
     };
     
-    // Listen for storage events
-    window.addEventListener('storage', handleStorageChange);
+    // Listen for our custom auth change event
+    window.addEventListener('authChange', handleAuthChange);
     
     // Also check on first render
-    try {
-      setAuthRole(localStorage.getItem('role'));
-    } catch (error) {
-      console.error('Failed to access localStorage on first render:', error);
-    }
+    setAuthRole(localStorage.getItem('role'));
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authChange', handleAuthChange);
     };
   }, []);
 
@@ -200,19 +185,13 @@ function App() {
     const redirect = params.get('redirect');
     
     if (redirect === 'admin') {
-      try {
-        // Check if user has admin role
-        const role = localStorage.getItem('role');
-        if (role === 'admin') {
-          // Clean up the URL and redirect to admin
-          window.history.replaceState({}, document.title, '/admin');
-        } else {
-          // If not admin, redirect to unauthorized
-          window.history.replaceState({}, document.title, '/unauthorized');
-        }
-      } catch (error) {
-        console.error('Failed to access localStorage in redirect handler:', error);
-        // Default to unauthorized if can't access localStorage
+      // Check if user has admin role
+      const role = localStorage.getItem('role');
+      if (role === 'admin') {
+        // Clean up the URL and redirect to admin
+        window.history.replaceState({}, document.title, '/admin');
+      } else {
+        // If not admin, redirect to unauthorized
         window.history.replaceState({}, document.title, '/unauthorized');
       }
     }

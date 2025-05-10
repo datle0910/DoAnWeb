@@ -44,106 +44,89 @@ const Login = ({ onClose, onLoginSuccess }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      try {
-        // Clear any existing auth data first
-        localStorage.removeItem('role');
-        localStorage.removeItem('currentUser');
+      // Clear any existing auth data first
+      localStorage.removeItem('role');
+      localStorage.removeItem('currentUser');
+      
+      // Get users from localStorage
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      
+      // For demo, if no users exist, create a default admin and customer
+      if (users.length === 0) {
+        const defaultUsers = [
+          {
+            id: 'admin-default',
+            fullName: 'Admin User',
+            email: 'admin@example.com',
+            password: 'admin123',
+            role: 'admin',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'customer-default',
+            fullName: 'Customer User',
+            email: 'customer@example.com',
+            password: 'customer123',
+            role: 'customer',
+            createdAt: new Date().toISOString()
+          }
+        ];
+        localStorage.setItem('users', JSON.stringify(defaultUsers));
         
-        // Get users from localStorage
-        let users = [];
-        try {
-          const usersJson = localStorage.getItem('users');
-          users = usersJson ? JSON.parse(usersJson) : [];
-        } catch (parseError) {
-          console.error('Error parsing users from localStorage:', parseError);
-          users = [];
+        // Now use these for authentication
+        const user = defaultUsers.find(u => 
+          u.email === formData.email && u.password === formData.password
+        );
+        
+        if (user) {
+          loginUser(user);
+          return;
         }
+      } else {
+        // Find user with matching email and password
+        const user = users.find(u => 
+          u.email === formData.email && u.password === formData.password
+        );
         
-        // For demo, if no users exist, create a default admin and customer
-        if (users.length === 0) {
-          const defaultUsers = [
-            {
-              id: 'admin-default',
-              fullName: 'Admin User',
-              email: 'admin@example.com',
-              password: 'admin123',
-              role: 'admin',
-              createdAt: new Date().toISOString()
-            },
-            {
-              id: 'customer-default',
-              fullName: 'Customer User',
-              email: 'customer@example.com',
-              password: 'customer123',
-              role: 'customer',
-              createdAt: new Date().toISOString()
-            }
-          ];
-          
-          try {
-            localStorage.setItem('users', JSON.stringify(defaultUsers));
-          } catch (setError) {
-            console.error('Error saving default users to localStorage:', setError);
-          }
-          
-          // Now use these for authentication
-          const user = defaultUsers.find(u => 
-            u.email === formData.email && u.password === formData.password
-          );
-          
-          if (user) {
-            loginUser(user);
-            return;
-          }
-        } else {
-          // Find user with matching email and password
-          const user = users.find(u => 
-            u.email === formData.email && u.password === formData.password
-          );
-          
-          if (user) {
-            loginUser(user);
-            return;
-          }
+        if (user) {
+          loginUser(user);
+          return;
         }
-        
-        // If we get here, authentication failed
-        setLoginError('Email hoặc mật khẩu không đúng');
-      } catch (error) {
-        console.error('Failed to access localStorage during login:', error);
-        setLoginError('Đăng nhập thất bại do trình duyệt chặn truy cập lưu trữ. Vui lòng kiểm tra cài đặt trình duyệt của bạn.');
       }
+      
+      // If we get here, authentication failed
+      setLoginError('Email hoặc mật khẩu không đúng');
     }
   };
   
   const loginUser = (user) => {
-    try {
-      // Save login state and user info to localStorage
-      localStorage.setItem('role', user.role);
-      localStorage.setItem('currentUser', JSON.stringify({
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role
-      }));
-      
-      // Close the modal first
-      onClose();
-      
-      // Handle different redirects based on role
-      if (user.role === 'admin') {
-        // Use window.location for full page reload
-        window.location.href = '/admin';
-      } else {
-        // Call the onLoginSuccess callback if provided
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        }
-        // Stay on current page or go to home for customers
+    // Save login state and user info to localStorage
+    localStorage.setItem('role', user.role);
+    localStorage.setItem('currentUser', JSON.stringify({
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role
+    }));
+    
+    // Notify about authentication change using the custom method
+    if (window.updateAuthStatus) {
+      window.updateAuthStatus();
+    }
+    
+    // Close the modal first
+    onClose();
+    
+    // Handle different redirects based on role
+    if (user.role === 'admin') {
+      // Use window.location for full page reload
+      window.location.href = '/admin';
+    } else {
+      // Call the onLoginSuccess callback if provided
+      if (onLoginSuccess) {
+        onLoginSuccess();
       }
-    } catch (error) {
-      console.error('Failed to store user data in localStorage:', error);
-      setLoginError('Đăng nhập thất bại do trình duyệt chặn truy cập lưu trữ. Vui lòng kiểm tra cài đặt trình duyệt của bạn.');
+      // Stay on current page or go to home for customers
     }
   };
 

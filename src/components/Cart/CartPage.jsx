@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaTrash, FaMinus, FaPlus, FaCheck, FaShoppingBag } from 'react-icons/fa';
+import { FaTrash, FaMinus, FaPlus, FaCheck, FaShoppingBag, FaTimes, FaArrowRight, FaMapMarkerAlt, FaPhoneAlt, FaUser } from 'react-icons/fa';
 import MainLayout from '../Layout/MainLayout';
 import { useCart } from '../Cart/CartContext';
 import { useNotification } from '../Cart/CartContext';
@@ -8,8 +8,18 @@ import { useNotification } from '../Cart/CartContext';
 const CartPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [customerInfo, setCustomerInfo] = useState({
+    fullName: '',
+    phone: '',
+    address: '',
+    city: '',
+    district: '',
+    paymentMethod: 'cod'
+  });
+  const [errors, setErrors] = useState({});
   const { showNotification } = useNotification();
   const { 
     cartItems, 
@@ -28,6 +38,15 @@ const CartPage = () => {
       return;
     }
     
+    // Pre-fill customer info with current user data if available
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (currentUser) {
+      setCustomerInfo(prev => ({
+        ...prev,
+        fullName: currentUser.fullName || ''
+      }));
+    }
+    
     setLoading(false);
   }, [navigate, forceUpdate]); // Include forceUpdate to re-render on cart changes
 
@@ -40,47 +59,95 @@ const CartPage = () => {
     removeFromCart(id);
   };
 
-  const handleCheckout = () => {
+  const handleStartCheckout = () => {
     if (cartItems.length === 0) {
       showNotification('Giỏ hàng của bạn đang trống!', 'error');
       return;
     }
+    
+    setShowCustomerForm(true);
+  };
 
+  const handleCustomerInfoChange = (e) => {
+    const { name, value } = e.target;
+    setCustomerInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear validation errors when typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: null
+      }));
+    }
+  };
+
+  const validateCustomerInfo = () => {
+    const newErrors = {};
+    if (!customerInfo.fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ tên';
+    if (!customerInfo.phone.trim()) newErrors.phone = 'Vui lòng nhập số điện thoại';
+    else if (!/^[0-9]{10}$/.test(customerInfo.phone.trim())) newErrors.phone = 'Số điện thoại không hợp lệ';
+    if (!customerInfo.address.trim()) newErrors.address = 'Vui lòng nhập địa chỉ';
+    if (!customerInfo.city.trim()) newErrors.city = 'Vui lòng nhập thành phố';
+    if (!customerInfo.district.trim()) newErrors.district = 'Vui lòng nhập quận/huyện';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleConfirmOrder = () => {
+    if (!validateCustomerInfo()) return;
+    
     // Save order details for the success modal
     const orderId = 'ORD-' + Date.now().toString().substring(8);
     const orderDate = new Date().toLocaleDateString('vi-VN');
     const totalAmount = getCartTotal();
-    const itemCount = cartItems.length;
+    const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+    const deliveryFee = 0; // For now, free shipping
     
+    // Complete order details with customer info
     setOrderDetails({
       orderId,
       orderDate,
       totalAmount,
-      itemCount
+      itemCount,
+      deliveryFee,
+      customer: { ...customerInfo },
+      products: [...cartItems]
     });
 
     // Save order to localStorage for admin to view
     const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const newOrders = [
-      ...orders,
-      ...cartItems.map(item => ({
-        id: 'ORD-' + Date.now() + '-' + item.id,
+    const newOrder = {
+      id: orderId,
+      date: new Date().toISOString(),
+      customer: { ...customerInfo },
+      items: cartItems.map(item => ({
         productId: item.id,
         productName: item.title,
         quantity: item.quantity,
         price: item.price,
-        total: item.price * item.quantity,
-        status: 'Pending',
-        date: new Date().toISOString().slice(0, 10)
-      }))
-    ];
-    localStorage.setItem('orders', JSON.stringify(newOrders));
+        total: item.price * item.quantity
+      })),
+      total: totalAmount,
+      status: 'Pending',
+      paymentMethod: customerInfo.paymentMethod
+    };
+    
+    localStorage.setItem('orders', JSON.stringify([...orders, newOrder]));
 
-    // Show success modal
+    // Close customer form and show success modal
+    setShowCustomerForm(false);
     setShowSuccessModal(true);
     
     // Clear the cart
     clearCart();
+  };
+
+  const handleCloseCustomerForm = () => {
+    setShowCustomerForm(false);
   };
 
   const handleCloseSuccessModal = () => {
@@ -208,7 +275,7 @@ const CartPage = () => {
                     </div>
                   </div>
                   <button
-                    onClick={handleCheckout}
+                    onClick={handleStartCheckout}
                     className="w-full mt-6 bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700"
                   >
                     Thanh toán
@@ -225,10 +292,167 @@ const CartPage = () => {
           </div>
         )}
         
+        {/* Customer Information Form Modal */}
+        {showCustomerForm && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="absolute inset-0 backdrop-blur-sm bg-black/30"></div>
+            <div className="bg-white rounded-lg p-6 max-w-xl w-full relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-800">Thông tin giao hàng</h2>
+                <button 
+                  onClick={handleCloseCustomerForm}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+              
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <FaUser className="inline mr-2" /> Họ và tên
+                  </label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={customerInfo.fullName}
+                    onChange={handleCustomerInfoChange}
+                    className={`w-full px-3 py-2 border rounded-md ${errors.fullName ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="Nguyễn Văn A"
+                  />
+                  {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <FaPhoneAlt className="inline mr-2" /> Số điện thoại
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={customerInfo.phone}
+                    onChange={handleCustomerInfoChange}
+                    className={`w-full px-3 py-2 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="0912345678"
+                  />
+                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <FaMapMarkerAlt className="inline mr-2" /> Địa chỉ
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={customerInfo.address}
+                    onChange={handleCustomerInfoChange}
+                    className={`w-full px-3 py-2 border rounded-md ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="Số nhà, tên đường, phường/xã"
+                  />
+                  {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quận/Huyện</label>
+                    <input
+                      type="text"
+                      name="district"
+                      value={customerInfo.district}
+                      onChange={handleCustomerInfoChange}
+                      className={`w-full px-3 py-2 border rounded-md ${errors.district ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="Quận 1"
+                    />
+                    {errors.district && <p className="text-red-500 text-xs mt-1">{errors.district}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành phố</label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={customerInfo.city}
+                      onChange={handleCustomerInfoChange}
+                      className={`w-full px-3 py-2 border rounded-md ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="TP. Hồ Chí Minh"
+                    />
+                    {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phương thức thanh toán</label>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center">
+                      <input
+                        id="cod"
+                        name="paymentMethod"
+                        type="radio"
+                        value="cod"
+                        checked={customerInfo.paymentMethod === 'cod'}
+                        onChange={handleCustomerInfoChange}
+                        className="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500"
+                      />
+                      <label htmlFor="cod" className="ml-2 text-sm text-gray-700">
+                        Thanh toán khi nhận hàng (COD)
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        id="bank-transfer"
+                        name="paymentMethod"
+                        type="radio"
+                        value="bank-transfer"
+                        checked={customerInfo.paymentMethod === 'bank-transfer'}
+                        onChange={handleCustomerInfoChange}
+                        className="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500"
+                      />
+                      <label htmlFor="bank-transfer" className="ml-2 text-sm text-gray-700">
+                        Chuyển khoản ngân hàng
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Thông tin đơn hàng</h3>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-600">Số lượng sản phẩm:</span>
+                    <span className="font-medium">{cartItems.reduce((total, item) => total + item.quantity, 0)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Tổng tiền:</span>
+                    <span className="font-medium text-red-600">{getCartTotal().toLocaleString()} đ</span>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleCloseCustomerForm}
+                    className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmOrder}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 flex items-center"
+                  >
+                    Xác nhận đặt hàng
+                    <FaArrowRight className="ml-2" />
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        
         {/* Success Modal */}
         {showSuccessModal && orderDetails && (
           <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="absolute inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center"></div>
+            <div className="absolute inset-0 backdrop-blur-sm bg-white/30"></div>
             <div className="bg-white rounded-lg p-8 max-w-md w-full relative z-10 shadow-2xl">
               <div className="flex flex-col items-center text-center">
                 <div className="w-16 h-16 flex items-center justify-center bg-green-100 rounded-full mb-4">
